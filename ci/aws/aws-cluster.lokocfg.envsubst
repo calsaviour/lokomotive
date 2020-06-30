@@ -181,3 +181,5 @@ component "httpbin" {
 }
 
 component "aws-ebs-csi-driver" {}
+
+component "istio-operator" {}
