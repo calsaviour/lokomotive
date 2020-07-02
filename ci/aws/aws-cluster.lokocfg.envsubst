@@ -181,3 +181,7 @@ component "httpbin" {
 }
 
 component "aws-ebs-csi-driver" {}
+
+component "linkerd" {
+  controller_replicas = 2
+}

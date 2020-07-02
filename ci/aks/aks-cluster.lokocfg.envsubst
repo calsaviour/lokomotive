@@ -116,3 +116,7 @@ component "httpbin" {
 
   certmanager_cluster_issuer = "letsencrypt-staging"
 }
+
+component "linkerd" {
+  controller_replicas = 2
+}
