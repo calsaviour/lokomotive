@@ -41,7 +41,7 @@ identity:
 enablePodAntiAffinity: true
 
 # controller configuration
-controllerReplicas: 3
+controllerReplicas: {{.ControllerReplicas}}
 controllerResources: &controller_resources
   cpu: &controller_resources_cpu
     limit: "1"

@@ -37,14 +37,17 @@ func init() {
 }
 
 type component struct {
-	CA     string
-	Cert   string
-	Key    string
-	Expiry string
+	CA                 string
+	Cert               string
+	Key                string
+	Expiry             string
+	ControllerReplicas int `hcl:"controller_replicas,optional"`
 }
 
 func newComponent() *component {
-	return &component{}
+	return &component{
+		ControllerReplicas: 1,
+	}
 }
 
 func (c *component) LoadConfig(configBody *hcl.Body, evalContext *hcl.EvalContext) hcl.Diagnostics {
