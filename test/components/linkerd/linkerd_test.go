@@ -20,6 +20,7 @@ package linkerd_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"testing"
@@ -98,8 +99,8 @@ metadata:
   generateName: linkerd-check-test-
 `
 
-	retryInterval = 2 * time.Second
-	timeout       = 5 * time.Minute
+	retryInterval = 3 * time.Second
+	timeout       = 7 * time.Minute
 )
 
 // nolint: funlen
@@ -137,9 +138,18 @@ func TestLinkerdCheck(t *testing.T) {
 
 	podsClient := client.Pods(ns.Name)
 
-	pod, err = podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
-	if err != nil {
-		t.Fatalf("failed creating Pod: %v", err)
+	// Retry pod creation. This might fail if Linkerd is not ready yet and some requests might fail.
+	if err := wait.PollImmediate(retryInterval, timeout, func() (done bool, err error) {
+		pod, err = podsClient.Create(context.TODO(), pod, metav1.CreateOptions{})
+		if err != nil {
+			err = fmt.Errorf("failed creating Pod: %w", err)
+			t.Logf("retrying pod creation: %v", err)
+			return false, err
+		}
+
+		return true, nil
+	}); err != nil {
+		t.Fatalf("error while trying to create the pod: %v", err)
 	}
 
 	phase := corev1.PodUnknown
