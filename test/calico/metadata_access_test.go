@@ -19,6 +19,7 @@ package calico_test
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -104,9 +105,18 @@ func TestNoMetadataAccessRandomPod(t *testing.T) { //nolint:funlen
 
 	podsclient := client.Pods(ns.ObjectMeta.Name)
 
-	p, err = podsclient.Create(context.TODO(), p, metav1.CreateOptions{})
-	if err != nil {
-		t.Fatalf("failed creating Pod: %v", err)
+	// Retry pod creation. This might fail if Linkerd is not ready yet and some requests might fail.
+	if err := wait.PollImmediate(retryInterval, timeout, func() (done bool, err error) {
+		p, err = podsclient.Create(context.TODO(), p, metav1.CreateOptions{})
+		if err != nil {
+			err = fmt.Errorf("failed creating Pod: %w", err)
+			t.Logf("retrying pod creation: %v", err)
+			return false, err
+		}
+
+		return true, nil
+	}); err != nil {
+		t.Fatalf("error while trying to create the pod: %v", err)
 	}
 
 	phase := corev1.PodUnknown
